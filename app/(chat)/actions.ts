@@ -8,7 +8,8 @@ import {
   updateChatVisiblityById,
 } from '@/lib/db/queries';
 import type { VisibilityType } from '@/components/visibility-selector';
-import { myProvider } from '@/lib/ai/providers';
+import { createAzure } from '@ai-sdk/azure';
+
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();
@@ -20,8 +21,14 @@ export async function generateTitleFromUserMessage({
 }: {
   message: UIMessage;
 }) {
-  const { text: title } = await generateText({
-    model: myProvider.languageModel('title-model'),
+  console.log('inside generate titel function with message: ', message);
+
+  const azure = createAzure({
+    resourceName: 'makai-azurespon', // Azure resource name
+    apiKey: process.env.AZURE_OPENAI_API_KEY, // Azure OpenAI API key
+  });
+  const { text } = await generateText({
+    model: azure('o1'),
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long
@@ -30,7 +37,9 @@ export async function generateTitleFromUserMessage({
     prompt: JSON.stringify(message),
   });
 
-  return title;
+  console.log("title generated: ", text);
+
+  return text;
 }
 
 export async function deleteTrailingMessages({ id }: { id: string }) {

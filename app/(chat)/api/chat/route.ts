@@ -22,10 +22,10 @@ import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { isProductionEnvironment } from '@/lib/constants';
-import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
+import { azure, createAzure } from '@ai-sdk/azure';
 
 export const maxDuration = 60;
 
@@ -40,7 +40,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, message, selectedChatModel } = requestBody;
+    const { id, message } = requestBody;
+    console.log('user message: ', message);
+
 
     const session = await auth();
 
@@ -55,6 +57,8 @@ export async function POST(request: Request) {
       differenceInHours: 24,
     });
 
+    console.log('message count: ', messageCount);
+
     if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
       return new Response(
         'You have exceeded your maximum number of messages for the day! Please try again later.',
@@ -67,6 +71,7 @@ export async function POST(request: Request) {
     const chat = await getChatById({ id });
 
     if (!chat) {
+      console.log('chat not found so generating a new title');
       const title = await generateTitleFromUserMessage({
         message,
       });
@@ -108,32 +113,35 @@ export async function POST(request: Request) {
       ],
     });
 
+    const azure = createAzure({
+      resourceName: 'makai-azurespon', // Azure resource name
+      apiKey: process.env.AZURE_OPENAI_API_KEY, // Azure OpenAI API key
+    });
+
     return createDataStreamResponse({
       execute: (dataStream) => {
         const result = streamText({
-          model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
+          model: azure('o1'),
+          system: systemPrompt({ requestHints }),
           messages,
           maxSteps: 5,
           experimental_activeTools:
-            selectedChatModel === 'chat-model-reasoning'
-              ? []
-              : [
-                  'getWeather',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                ],
+            [
+              // 'getWeather',
+              // 'createDocument',
+              // 'updateDocument',
+              // 'requestSuggestions',
+            ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
+            // getWeather,
+            // createDocument: createDocument({ session, dataStream }),
+            // updateDocument: updateDocument({ session, dataStream }),
+            // requestSuggestions: requestSuggestions({
+            //   session,
+            //   dataStream,
+            // }),
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {
