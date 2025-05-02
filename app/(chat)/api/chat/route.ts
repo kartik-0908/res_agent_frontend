@@ -1,17 +1,19 @@
 import {
   appendClientMessage,
   appendResponseMessages,
-  createDataStreamResponse,
+  createDataStream,
   smoothStream,
   streamText,
 } from 'ai';
 import { auth, type UserType } from '@/app/(auth)/auth';
 import { type RequestHints, systemPrompt } from '@/lib/ai/prompts';
 import {
+  createStreamId,
   deleteChatById,
   getChatById,
   getMessageCountByUserId,
   getMessagesByChatId,
+  getStreamIdsByChatId,
   saveChat,
   saveMessages,
 } from '@/lib/db/queries';
@@ -22,27 +24,36 @@ import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { isProductionEnvironment } from '@/lib/constants';
+import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
-import { azure, createAzure } from '@ai-sdk/azure';
+import { createResumableStreamContext } from 'resumable-stream';
+import { after } from 'next/server';
+import type { Chat } from '@/lib/db/schema';
+import { createAzure } from '@ai-sdk/azure';
+import { azure } from '@/lib/ai/azure';
 
 export const maxDuration = 60;
+
+const streamContext = createResumableStreamContext({
+  waitUntil: after,
+});
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
 
   try {
     const json = await request.json();
+    console.log('json: ', json);
     requestBody = postRequestBodySchema.parse(json);
   } catch (_) {
     return new Response('Invalid request body', { status: 400 });
   }
 
   try {
-    const { id, message } = requestBody;
-    console.log('user message: ', message);
-
+    const { id, message } =
+      requestBody;
 
     const session = await auth();
 
@@ -57,8 +68,6 @@ export async function POST(request: Request) {
       differenceInHours: 24,
     });
 
-    console.log('message count: ', messageCount);
-
     if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
       return new Response(
         'You have exceeded your maximum number of messages for the day! Please try again later.',
@@ -71,12 +80,16 @@ export async function POST(request: Request) {
     const chat = await getChatById({ id });
 
     if (!chat) {
-      console.log('chat not found so generating a new title');
       const title = await generateTitleFromUserMessage({
         message,
       });
 
-      await saveChat({ id, userId: session.user.id, title });
+      await saveChat({
+        id,
+        userId: session.user.id,
+        title,
+        visibility: "private",
+      });
     } else {
       if (chat.userId !== session.user.id) {
         return new Response('Forbidden', { status: 403 });
@@ -113,12 +126,10 @@ export async function POST(request: Request) {
       ],
     });
 
-    const azure = createAzure({
-      resourceName: 'makai-azurespon', // Azure resource name
-      apiKey: process.env.AZURE_OPENAI_API_KEY, // Azure OpenAI API key
-    });
+    const streamId = generateUUID();
+    await createStreamId({ streamId, chatId: id });
 
-    return createDataStreamResponse({
+    const stream = createDataStream({
       execute: (dataStream) => {
         const result = streamText({
           model: azure('o1'),
@@ -126,22 +137,25 @@ export async function POST(request: Request) {
           messages,
           maxSteps: 5,
           experimental_activeTools:
-            [
-              // 'getWeather',
-              // 'createDocument',
-              // 'updateDocument',
-              // 'requestSuggestions',
-            ],
+            // selectedChatModel === 'chat-model-reasoning'
+            //   ? []
+            //   : 
+              [
+                  'getWeather',
+                  'createDocument',
+                  'updateDocument',
+                  'requestSuggestions',
+                ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools: {
-            // getWeather,
-            // createDocument: createDocument({ session, dataStream }),
-            // updateDocument: updateDocument({ session, dataStream }),
-            // requestSuggestions: requestSuggestions({
-            //   session,
-            //   dataStream,
-            // }),
+            getWeather,
+            createDocument: createDocument({ session, dataStream }),
+            updateDocument: updateDocument({ session, dataStream }),
+            requestSuggestions: requestSuggestions({
+              session,
+              dataStream,
+            }),
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {
@@ -195,11 +209,69 @@ export async function POST(request: Request) {
         return 'Oops, an error occurred!';
       },
     });
+
+    return new Response(
+      await streamContext.resumableStream(streamId, () => stream),
+    );
   } catch (_) {
     return new Response('An error occurred while processing your request!', {
       status: 500,
     });
   }
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const chatId = searchParams.get('chatId');
+
+  if (!chatId) {
+    return new Response('id is required', { status: 400 });
+  }
+
+  const session = await auth();
+
+  if (!session?.user) {
+    return new Response('Unauthorized', { status: 401 });
+  }
+
+  let chat: Chat;
+
+  try {
+    chat = await getChatById({ id: chatId });
+  } catch {
+    return new Response('Not found', { status: 404 });
+  }
+
+  if (!chat) {
+    return new Response('Not found', { status: 404 });
+  }
+
+  if (chat.visibility === 'private' && chat.userId !== session.user.id) {
+    return new Response('Forbidden', { status: 403 });
+  }
+
+  const streamIds = await getStreamIdsByChatId({ chatId });
+
+  if (!streamIds.length) {
+    return new Response('No streams found', { status: 404 });
+  }
+
+  const recentStreamId = streamIds.at(-1);
+
+  if (!recentStreamId) {
+    return new Response('No recent stream found', { status: 404 });
+  }
+
+  const emptyDataStream = createDataStream({
+    execute: () => {},
+  });
+
+  return new Response(
+    await streamContext.resumableStream(recentStreamId, () => emptyDataStream),
+    {
+      status: 200,
+    },
+  );
 }
 
 export async function DELETE(request: Request) {
@@ -227,6 +299,7 @@ export async function DELETE(request: Request) {
 
     return Response.json(deletedChat, { status: 200 });
   } catch (error) {
+    console.error(error);
     return new Response('An error occurred while processing your request!', {
       status: 500,
     });
