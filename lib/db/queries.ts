@@ -97,6 +97,7 @@ export async function saveChat({
     });
   } catch (error) {
     console.error('Failed to save chat in database');
+    console.error(error);
     throw error;
   }
 }
