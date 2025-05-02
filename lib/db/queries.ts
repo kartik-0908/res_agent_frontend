@@ -88,19 +88,34 @@ export async function saveChat({
   visibility: VisibilityType;
 }) {
   try {
+    // Check if the user exists
+    const [existingUser] = await db
+      .select()
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    let ownerId = userId;
+    if (!existingUser) {
+      // If no such user, create a guest account
+      const [guest] = await createGuestUser();
+      ownerId = guest.id;
+    }
+
+    // Now insert the chat with the verified (or new) user ID
     return await db.insert(chat).values({
       id,
       createdAt: new Date(),
-      userId,
+      userId: ownerId,
       title,
       visibility,
     });
   } catch (error) {
-    console.error('Failed to save chat in database');
-    console.error(error);
+    console.error('Failed to save chat in database', error);
     throw error;
   }
 }
+
 
 export async function deleteChatById({ id }: { id: string }) {
   try {
