@@ -8,22 +8,20 @@ import { initialArtifactData, useArtifact } from '@/hooks/use-artifact';
 
 export type DataStreamDelta = {
   type:
-    | 'text-delta'
-    | 'code-delta'
-    | 'sheet-delta'
-    | 'image-delta'
-    | 'title'
-    | 'id'
-    | 'suggestion'
-    | 'clear'
-    | 'finish'
-    | 'kind';
+  | 'text-delta'
+  | 'code-delta'
+  | 'sheet-delta'
+  | 'image-delta'
+  | 'title'
+  | 'id'
+  | 'suggestion'
+  | 'clear'
+  | 'finish'
+  | 'kind';
   content: string | Suggestion;
-};
-
+}
 export function DataStreamHandler({ id }: { id: string }) {
   const { data: dataStream } = useChat({ id });
-  console.log('DataStreamHandler', dataStream);
   const { artifact, setArtifact, setMetadata } = useArtifact();
   const lastProcessedIndex = useRef(-1);
 

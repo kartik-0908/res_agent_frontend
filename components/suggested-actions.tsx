@@ -19,24 +19,24 @@ function PureSuggestedActions({
 }: SuggestedActionsProps) {
   const suggestedActions = [
     {
-      title: 'What are the advantages',
-      label: 'of using Next.js?',
-      action: 'What are the advantages of using Next.js?',
+      title: 'Outline the 2022 ACC/AHA/HFSA algorithm',
+      label: 'for newly diagnosed HFrEF—in three crisp bullets.',
+      action: 'Outline the 2022 ACC/AHA/HFSA algorithm for newly diagnosed HFrEF—in three crisp bullets.',
     },
     {
-      title: 'Write code to',
-      label: `demonstrate djikstra's algorithm`,
-      action: `Write code to demonstrate djikstra's algorithm`,
+      title: 'What’s the Class I vs IIa guidance on DOACs versus',
+      label: ` warfarin for non-valvular AF (ACC 2023)?`,
+      action: `“What’s the Class I vs IIa guidance on DOACs versus warfarin for non-valvular AF (ACC 2023)`,
     },
     {
-      title: 'Help me write an essay',
-      label: `about silicon valley`,
-      action: `Help me write an essay about silicon valley`,
+      title: 'Compare STEMI vs NSTEMI dual-antiplatelet ',
+      label: `duration rules from the 2022 ESC ACS update.`,
+      action: `Compare STEMI vs NSTEMI dual-antiplatelet duration rules from the 2022 ESC ACS update.`,
     },
     {
-      title: 'What is the weather',
-      label: 'in San Francisco?',
-      action: 'What is the weather in San Francisco?',
+      title: 'List the high-risk features that trigger early',
+      label: 'TAVI referral in asymptomatic severe AS (latest ACC)',
+      action: 'List the high-risk features that trigger early TAVI referral in asymptomatic severe AS (latest ACC).',
     },
   ];
 

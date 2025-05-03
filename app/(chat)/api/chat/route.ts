@@ -33,6 +33,7 @@ import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
 import { createAzure } from '@ai-sdk/azure';
 import { azure } from '@/lib/ai/azure';
+import { researchAgent } from '@/lib/ai/tools/research-agent';
 
 export const maxDuration = 60;
 
@@ -145,6 +146,7 @@ export async function POST(request: Request) {
                   'createDocument',
                   'updateDocument',
                   'requestSuggestions',
+                  'researchAgent',
                 ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
@@ -156,6 +158,7 @@ export async function POST(request: Request) {
               session,
               dataStream,
             }),
+            researchAgent: researchAgent({ dataStream }),
           },
           onFinish: async ({ response }) => {
             if (session.user?.id) {

@@ -28,7 +28,7 @@ export async function generateTitleFromUserMessage({
     apiKey: process.env.AZURE_OPENAI_API_KEY, // Azure OpenAI API key
   });
   const { text } = await generateText({
-    model: azure('o1'),
+    model: azure('gpt-4o'),
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long

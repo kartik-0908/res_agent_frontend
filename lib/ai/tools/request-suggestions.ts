@@ -5,6 +5,7 @@ import { getDocumentById, saveSuggestions } from '@/lib/db/queries';
 import { Suggestion } from '@/lib/db/schema';
 import { generateUUID } from '@/lib/utils';
 import { myProvider } from '../providers';
+import { azure } from '../azure';
 
 interface RequestSuggestionsProps {
   session: Session;
@@ -36,7 +37,7 @@ export const requestSuggestions = ({
       > = [];
 
       const { elementStream } = streamObject({
-        model: myProvider.languageModel('artifact-model'),
+        model: azure('o1'),
         system:
           'You are a help writing assistant. Given a piece of writing, please offer suggestions to improve the piece of writing and describe the change. It is very important for the edits to contain full sentences instead of just words. Max 5 suggestions.',
         prompt: document.content,

@@ -29,8 +29,8 @@ export const myProvider = isTestEnvironment
           model: xai('grok-3-mini-beta'),
           middleware: extractReasoningMiddleware({ tagName: 'think' }),
         }),
-        'title-model': xai('grok-2-1212'),
-        'artifact-model': xai('grok-2-1212'),
+        'title-model': azure('o1'),
+        'artifact-model': azure('o1'),
       },
       imageModels: {
         'small-model': xai.image('grok-2-image'),

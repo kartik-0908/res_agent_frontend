@@ -1,6 +1,6 @@
 'use client';
 
-import type { UIMessage } from 'ai';
+import { tool, type UIMessage } from 'ai';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState } from 'react';
@@ -19,6 +19,7 @@ import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
 import type { UseChatHelpers } from '@ai-sdk/react';
+import { ResAgentStreamHandler } from './res-agent-stream-handler';
 
 const PurePreviewMessage = ({
   chatId,
@@ -183,7 +184,9 @@ const PurePreviewMessage = ({
                           args={args}
                           isReadonly={isReadonly}
                         />
-                      ) : null}
+                      ) : toolName === 'researchAgent' ? (
+                        <ResAgentStreamHandler id={chatId} />
+                      ): null}
                     </div>
                   );
                 }
@@ -212,9 +215,10 @@ const PurePreviewMessage = ({
                           result={result}
                           isReadonly={isReadonly}
                         />
-                      ) : (
-                        <pre>{JSON.stringify(result, null, 2)}</pre>
-                      )}
+                      ) :
+                      toolName === 'researchAgent' ? (
+                        <ResAgentStreamHandler id={chatId} />
+                      ): null}
                     </div>
                   );
                 }
@@ -276,7 +280,7 @@ export const ThinkingMessage = () => {
 
         <div className="flex flex-col gap-2 w-full">
           <div className="flex flex-col gap-4 text-muted-foreground">
-            Hmm...
+            Just a moment...
           </div>
         </div>
       </div>

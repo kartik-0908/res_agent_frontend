@@ -3,6 +3,7 @@ import { sheetPrompt, updateDocumentPrompt } from '@/lib/ai/prompts';
 import { createDocumentHandler } from '@/lib/artifacts/server';
 import { streamObject } from 'ai';
 import { z } from 'zod';
+import { azure } from '@/lib/ai/azure';
 
 export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
   kind: 'sheet',
@@ -10,7 +11,7 @@ export const sheetDocumentHandler = createDocumentHandler<'sheet'>({
     let draftContent = '';
 
     const { fullStream } = streamObject({
-      model: myProvider.languageModel('artifact-model'),
+      model: azure('o1'),
       system: sheetPrompt,
       prompt: title,
       schema: z.object({

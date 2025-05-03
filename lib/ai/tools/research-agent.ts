@@ -9,7 +9,7 @@ interface ResearchAgentProps {
 export const researchAgent = ({ dataStream }: ResearchAgentProps) =>
   tool({
     description:
-      'Generate an in-depth research report on a given topic by calling the backend research agent service.',
+      'Generate an in-depth research report on a given topic only related to medical by calling the backend research agent service.',
     parameters: z.object({
       topic: z.string().describe('The topic to research'),
     }),
@@ -46,19 +46,16 @@ export const researchAgent = ({ dataStream }: ResearchAgentProps) =>
         buffer = parts.pop() ?? '';
 
         for (const part of parts) {
-          if (part.startsWith('data:')) {
-            const payload = JSON.parse(part.replace(/^data:\s*/, ''));
-            const chunk = payload.chunk as string;
+          if (!part.startsWith('data:')) continue;
 
-            // ←—— LOG IT HERE:
-            console.log('[researchAgent] new chunk:', chunk);
-
-            fullReport += chunk;
-            dataStream.writeData({ type: 'title', content: chunk });
+          const payload = JSON.parse(part.replace(/^data:\s*/, ''));
+          console.log('payload: ', payload);
+          dataStream.writeData(payload);
+          if (payload.type === 'final_report_after_research') {
+            fullReport += payload.final_report;
           }
         }
       }
-
       return { report: fullReport };
     },
   });

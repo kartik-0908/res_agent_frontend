@@ -18,6 +18,7 @@ import { toast } from './toast';
 import type { Session } from 'next-auth';
 import { useSearchParams } from 'next/navigation';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
+import { useStreamedSteps } from './streamed-steps-context';
 
 export function Chat({
   id,
@@ -77,6 +78,8 @@ export function Chat({
     },
   });
 
+  const { steps } = useStreamedSteps();
+
   useEffect(() => {
     if (autoResume) {
       experimental_resume();
@@ -121,7 +124,6 @@ export function Chat({
           isReadonly={isReadonly}
           session={session}
         />
-
         <Messages
           chatId={id}
           status={status}

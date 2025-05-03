@@ -38,6 +38,8 @@ function PureMessages({
     chatId,
     status,
   });
+  console.log("inside pure messages");
+  console.log("messages: ", messages);
 
   return (
     <div
