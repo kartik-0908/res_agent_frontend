@@ -35,7 +35,7 @@ import { createAzure } from '@ai-sdk/azure';
 import { azure } from '@/lib/ai/azure';
 import { researchAgent } from '@/lib/ai/tools/research-agent';
 
-export const maxDuration = 60;
+export const maxDuration = 1200;
 
 const streamContext = createResumableStreamContext({
   waitUntil: after,
