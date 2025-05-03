@@ -33,7 +33,8 @@ import type { Chat } from '@/lib/db/schema';
 import { azure } from '@/lib/ai/azure';
 import { researchAgent } from '@/lib/ai/tools/research-agent';
 
-export const maxDuration = 300;
+// export const maxDuration = 300;
+export const runtime = 'edge';
 
 const streamContext = createResumableStreamContext({
   waitUntil: after,
