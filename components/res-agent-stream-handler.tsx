@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { get } from 'http';
+import { getUrlMeta } from '@/lib/utils';
 
 type AgentDelta = {
   type: string;
@@ -28,12 +30,10 @@ const allowedTypes = [
 // Helper to fetch title and favicon
 async function fetchUrlMeta(url: string): Promise<UrlMeta> {
   try {
-    const res = await fetch(`/api/url-meta?url=${encodeURIComponent(url)}`);
-    if (!res.ok) throw new Error('Failed to fetch');
-    const data = await res.json();
+    const {title, favicon} = getUrlMeta(url);
     return {
-      title: data.title ,
-      favicon: data.favicon || `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}`,
+      title: title ,
+      favicon: favicon,
     };
   } catch (error){
     console.log('Failed to fetch title and favicon for URL:', error);
