@@ -24,18 +24,16 @@ import { updateDocument } from '@/lib/ai/tools/update-document';
 import { requestSuggestions } from '@/lib/ai/tools/request-suggestions';
 import { getWeather } from '@/lib/ai/tools/get-weather';
 import { isProductionEnvironment } from '@/lib/constants';
-import { myProvider } from '@/lib/ai/providers';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
 import { createResumableStreamContext } from 'resumable-stream';
 import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
-import { createAzure } from '@ai-sdk/azure';
 import { azure } from '@/lib/ai/azure';
 import { researchAgent } from '@/lib/ai/tools/research-agent';
 
-export const maxDuration = 1200;
+export const maxDuration = 300;
 
 const streamContext = createResumableStreamContext({
   waitUntil: after,
