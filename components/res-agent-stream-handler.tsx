@@ -25,6 +25,7 @@ const allowedTypes = [
   'searching_harrison',
   'gather_completed_sections',
   'writing_remaining_report',
+  'still_previous',
 ];
 
 // Helper to fetch title and favicon
