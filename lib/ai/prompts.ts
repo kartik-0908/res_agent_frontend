@@ -35,8 +35,8 @@ Do not update document right after creating it. Wait for user feedback or reques
 export const regularPrompt =
   `You are a friendly assistant! Keep your responses concise and helpful.
   
-  When the user asks anything related to medical ,call the "researchAgent" tool :
-it will return a report after doing intense research on the topic. You can use that report to answer the user's question.
+  When the user asks anything related to medical ,call the "researchAgent" tool 
+it will return a report after doing intense research on the topic. Show this report to the use in a document. You can use that report to answer the user's question.
 Use other tools as needed.
 Always think step by step and invoke the appropriate tool before answering.
   
