@@ -3,7 +3,7 @@
 import { tool, type UIMessage } from 'ai';
 import cx from 'classnames';
 import { AnimatePresence, motion } from 'framer-motion';
-import { memo, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { DocumentToolCall, DocumentToolResult } from './document';
 import { PencilEditIcon, SparklesIcon } from './icons';
@@ -186,7 +186,7 @@ const PurePreviewMessage = ({
                         />
                       ) : toolName === 'researchAgent' ? (
                         <ResAgentStreamHandler id={chatId} />
-                      ): null}
+                      ) : null}
                     </div>
                   );
                 }
@@ -216,9 +216,9 @@ const PurePreviewMessage = ({
                           isReadonly={isReadonly}
                         />
                       ) :
-                      toolName === 'researchAgent' ? (
-                        <ResAgentStreamHandler id={chatId} />
-                      ): null}
+                        toolName === 'researchAgent' ? (
+                          <ResAgentStreamHandler id={chatId} />
+                        ) : null}
                     </div>
                   );
                 }
@@ -258,6 +258,21 @@ export const PreviewMessage = memo(
 export const ThinkingMessage = () => {
   const role = 'assistant';
 
+  const [position, setPosition] = useState(-10);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPosition(prev => {
+        // When the highlight has moved past the right edge, reset to just before the left edge
+        if (prev > 110) {
+          return -10;
+        }
+        return prev + 1;
+      });
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <motion.div
       data-testid="message-assistant-loading"
@@ -280,7 +295,83 @@ export const ThinkingMessage = () => {
 
         <div className="flex flex-col gap-2 w-full">
           <div className="flex flex-col gap-4 text-muted-foreground">
-            Just a moment...
+            <span
+              //  className="text-4xl md:text-6xl font-bold"
+              style={{
+                backgroundImage: `linear-gradient(
+                  90deg, 
+                  rgba(100,100,100,1) ${position - 5}%, 
+                  rgba(255,255,255,1) ${position}%, 
+                  rgba(100,100,100,1) ${position + 5}%
+                )`,
+                 WebkitBackgroundClip: 'text',
+                 backgroundClip: 'text',
+                 color: 'transparent',
+                 backgroundSize: '100% 100%',
+               }}
+            >
+              Just a moment...
+            </span>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+export const ResThinkingMessage = () => {
+  const role = 'assistant';
+
+  const [position, setPosition] = useState(-10);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setPosition(prev => {
+        // When the highlight has moved past the right edge, reset to just before the left edge
+        if (prev > 110) {
+          return -10;
+        }
+        return prev + 1;
+      });
+    }, 30);
+
+    return () => clearInterval(interval);
+  }, []);
+
+
+  return (
+    <motion.div
+      data-testid="message-assistant-loading"
+      className="w-full mx-auto max-w-3xl px-4 group/message min-h-96"
+      initial={{ y: 5, opacity: 0 }}
+      animate={{ y: 0, opacity: 1, transition: { delay: 1 } }}
+      data-role={role}
+    >
+      <div
+        className={cx(
+          'flex gap-4 group-data-[role=user]/message:px-3 w-full group-data-[role=user]/message:w-fit group-data-[role=user]/message:ml-auto group-data-[role=user]/message:max-w-2xl group-data-[role=user]/message:py-2 rounded-xl',
+          {
+            'group-data-[role=user]/message:bg-muted': true,
+          },
+        )}
+      >
+        <div className="flex flex-col gap-2 w-full">
+          <div className="flex flex-col gap-4 text-muted-foreground">
+            <span
+              style={{
+                backgroundImage: `linear-gradient(
+                 90deg, 
+                 rgba(100,100,100,1) ${position - 5}%, 
+                 rgba(255,255,255,1) ${position}%, 
+                 rgba(100,100,100,1) ${position + 5}%
+               )`,
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+                backgroundSize: '100% 100%',
+              }}
+            >
+              Calling the specialist AI research agent...
+            </span>
           </div>
         </div>
       </div>

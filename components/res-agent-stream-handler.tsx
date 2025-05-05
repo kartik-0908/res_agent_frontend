@@ -4,7 +4,8 @@ import { useChat } from '@ai-sdk/react';
 import { useEffect, useRef, useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Clock, Loader2 } from 'lucide-react';
+import { ResThinkingMessage, ThinkingMessage } from './message';
 
 type AgentDelta = {
   type: string;
@@ -34,8 +35,7 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
   const [completedTime, setCompletedTime] = useState<number | null>(null);
   const lastIndex = useRef(-1);
   const listRef = useRef<HTMLUListElement>(null);
-  // Add ref to track URLs that are currently being fetched
-  const fetchingUrls = useRef<Set<string>>(new Set());
+  const [position, setPosition] = useState(0);
 
   const researchComplete = steps.some((step) => step.type === 'writing_remaining_report');
 
@@ -48,6 +48,22 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
     const interval = setInterval(() => setTimer((t) => t + 1), 1000);
     return () => clearInterval(interval);
   }, [steps.length, researchComplete]);
+
+  useEffect(() => {
+    if (!researchComplete) {
+      const interval = setInterval(() => {
+        setPosition(prev => {
+          if (prev > 110) {
+            return -10;
+          }
+          return prev + 1;
+        });
+      }, 30);
+      
+      return () => clearInterval(interval);
+    }
+  }, [researchComplete]);
+
 
   useEffect(() => {
     if (!data?.length) return;
@@ -69,29 +85,49 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
   }, [steps, expanded]);
 
   if (steps.length === 0 && !loading) {
-    return null;
+    return <ResThinkingMessage />;
   }
 
   return (
     <div className="flex justify-center items-center p-4">
       <Card className="w-full max-w-xl transition-transform duration-200 ">
-        <CardHeader className='pt-1 pb-1'>
+      <CardHeader className='px-4 py-3'>
           <div className="flex justify-between items-center">
-            <h2 className="text-lg font-semibold flex items-center gap-2">
-              Research Agent Steps
-              <span className="ml-3 flex items-center gap-2">
-                {!researchComplete ? (
-                  <span className="inline-flex items-center rounded-full bg-emerald-100 border border-emerald-200 text-emerald-700 text-xs px-3 py-1 font-semibold">
-                    Agent is researching for {timer} seconds now
+            <div className="flex items-center gap-3">
+              <h2 className="text-lg font-semibold">Research Agent</h2>
+              {!researchComplete ? (
+                <div className="flex items-center gap-2">
+                  <div className="relative h-5 w-5">
+                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-500 border-r-blue-500 animate-spin"></div>
+                  </div>
+                  <span 
+                    className="text-sm font-medium"
+                    style={{
+                      backgroundImage: `linear-gradient(
+                        90deg, 
+                        rgba(59, 130, 246, 0.7) ${position - 5}%, 
+                        rgba(59, 130, 246, 1) ${position}%, 
+                        rgba(59, 130, 246, 0.7) ${position + 5}%
+                      )`,
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      color: 'transparent',
+                      backgroundSize: '100% 100%',
+                    }}
+                  >
+                    Researching ({timer}s)
                   </span>
-                ) : (
-                  <span className="px-3 py-1 rounded-full bg-green-200 text-green-800 text-xs font-bold border border-green-300">
-                    Research complete in {completedTime ?? timer} seconds
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-green-600" />
+                  <span className="text-sm font-medium text-green-600">
+                    Done in {completedTime ?? timer}s
                   </span>
-                )}
-              </span>
-            </h2>
-            <Button variant="ghost" size="sm" onClick={() => setExpanded((prev) => !prev)}>
+                </div>
+              )}
+            </div>
+            <Button variant="ghost" size="sm" onClick={() => setExpanded((prev) => !prev)} className="p-1 hover:bg-zinc-100 rounded-md">
               {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </Button>
           </div>
@@ -116,7 +152,7 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                           <div>
                             <div className="font-semibold text-xs text-gray-500 mb-1">Planning research</div>
                             <div className="italic text-gray-500">
-                              Agent is planning the research...
+                              Agent is currently planning the research...
                             </div>
                           </div>
                         ) : step.type === 'section_with_web_research' && Array.isArray(step.research_urls) ? (
