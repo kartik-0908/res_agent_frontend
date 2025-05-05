@@ -50,6 +50,8 @@ export interface RequestHints {
   country: Geo['country'];
 }
 
+
+
 export const getRequestPromptFromHints = (requestHints: RequestHints) => `\
 About the origin of user's request:
 - lat: ${requestHints.latitude}
