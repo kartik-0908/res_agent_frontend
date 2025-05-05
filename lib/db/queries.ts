@@ -72,6 +72,7 @@ export async function createGuestUser() {
     });
   } catch (error) {
     console.error('Failed to create guest user in database');
+    console.error(error);
     throw error;
   }
 }
