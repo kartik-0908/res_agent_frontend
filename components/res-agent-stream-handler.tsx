@@ -59,7 +59,7 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
           return prev + 1;
         });
       }, 30);
-      
+
       return () => clearInterval(interval);
     }
   }, [researchComplete]);
@@ -91,7 +91,7 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
   return (
     <div className="flex justify-center items-center p-4">
       <Card className="w-full max-w-xl transition-transform duration-200 ">
-      <CardHeader className='px-4 py-3'>
+        <CardHeader className='px-4 py-3'>
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
               <h2 className="text-lg font-semibold">Research Agent</h2>
@@ -100,7 +100,7 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                   <div className="relative h-5 w-5">
                     <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-500 border-r-blue-500 animate-spin"></div>
                   </div>
-                  <span 
+                  <span
                     className="text-sm font-medium"
                     style={{
                       backgroundImage: `linear-gradient(
@@ -183,8 +183,9 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                                             alt="favicon"
                                             className="w-4 h-4 flex-shrink-0"
                                           />
-                                          <span className="block text-gray-400 font-medium" style={{ maxWidth: 300 }}>
-                                            {urlItem.title}
+                                          <span className="block text-gray-500 text-xs font-medium">
+                                            {urlItem.title.split(' ').slice(0, 6).join(' ')}
+                                            {urlItem.title.split(' ').length > 6 ? '...' : ''}
                                           </span>
                                         </a>
                                       </li>
