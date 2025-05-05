@@ -19,7 +19,7 @@ export async function GET(request: Request) {
 
 
 
-export async function getUrlMeta(url: string) {
+async function getUrlMeta(url: string) {
     console.log('Fetching URL meta for:', url);
     try {
         const title = await fetchTitle(url);
