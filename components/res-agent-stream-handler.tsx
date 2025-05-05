@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ChevronDown, ChevronUp, Clock, Loader2 } from 'lucide-react';
 import { ResThinkingMessage, ThinkingMessage } from './message';
+import { useLocalStorage } from '@/hooks/storeTime';
 
 type AgentDelta = {
   type: string;
@@ -31,38 +32,44 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
   const [steps, setSteps] = useState<AgentDelta[]>([]);
   const [expanded, setExpanded] = useState(true);
   const [loading, setLoading] = useState(false);
-  const [timer, setTimer] = useState(0);
-  const [completedTime, setCompletedTime] = useState<number | null>(null);
+  const [timer, setTimer] = useState<number>(
+    () => Number(window.localStorage.getItem(`research-timer-${id}`)) || 0
+  );
+
+  const [completedTime, setCompletedTime] = useLocalStorage<number | null>(`research-completed-time-${id}`, null);
   const lastIndex = useRef(-1);
   const listRef = useRef<HTMLUListElement>(null);
   const [position, setPosition] = useState(0);
+  const [userHasScrolled, setUserHasScrolled] = useState(false);
+  const [researchCompleteFlag, setResearchCompleteFlag] = useLocalStorage<boolean>(`research-complete-${id}`, false);
+  const [loadedSteps, setLoadedSteps] = useLocalStorage<AgentDelta[]>(`research-steps-${id}`, []);
 
-  const researchComplete = steps.some((step) => step.type === 'writing_remaining_report');
+
+  const researchComplete = researchCompleteFlag || steps.some((step) => step.type === 'writing_remaining_report');
 
   useEffect(() => {
-    if (steps.length === 0) return;
-    if (researchComplete) {
-      if (completedTime === null) setCompletedTime(timer);
-      return;
-    }
-    const interval = setInterval(() => setTimer((t) => t + 1), 1000);
+    if (steps.length === 0 || researchComplete) return;
+    const interval = setInterval(() => {
+      setTimer((t) => t + 1);
+    }, 1000);
+
     return () => clearInterval(interval);
   }, [steps.length, researchComplete]);
 
   useEffect(() => {
-    if (!researchComplete) {
-      const interval = setInterval(() => {
-        setPosition(prev => {
-          if (prev > 110) {
-            return -10;
-          }
-          return prev + 1;
-        });
-      }, 30);
+    if (!researchComplete) return;
+    window.localStorage.setItem(`research-timer-${id}`, String(timer));
+    setCompletedTime(timer);
+  }, [researchComplete, timer, id, setCompletedTime]);
 
-      return () => clearInterval(interval);
+  useEffect(() => {
+    // On first mount, restore any saved steps
+    if (steps.length === 0 && loadedSteps.length > 0) {
+      setSteps(loadedSteps);
+      // Set lastIndex to avoid reprocessing these steps
+      lastIndex.current = loadedSteps.length - 1;
     }
-  }, [researchComplete]);
+  }, [loadedSteps]);
 
 
   useEffect(() => {
@@ -70,19 +77,59 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
 
     setLoading(true);
     const newItems = data.slice(lastIndex.current + 1) as AgentDelta[];
+    const hasNewItems = newItems.length > 0;
     lastIndex.current = data.length - 1;
 
-    if (newItems.length) {
-      setSteps((prev) => [...prev, ...newItems]);
+    if (hasNewItems) {
+      const updatedSteps = [...steps, ...newItems];
+      setSteps(updatedSteps);
+
+      // Save steps to localStorage
+      setLoadedSteps(updatedSteps);
+
+      // Only auto-scroll if new items were added and user hasn't manually scrolled
+      if (!userHasScrolled && listRef.current) {
+        setTimeout(() => {
+          if (listRef.current) {
+            listRef.current.scrollTop = listRef.current.scrollHeight;
+          }
+        }, 10);
+      }
     }
     setLoading(false);
-  }, [data]);
+  }, [data, userHasScrolled, steps, setLoadedSteps]);
+
+  const [scrollPosition, setScrollPosition] = useState(0);
+
+  // Handle user scroll interaction
+  const handleScroll = () => {
+    if (!listRef.current) return;
+
+    const { scrollTop, scrollHeight, clientHeight } = listRef.current;
+    const isAtBottom = Math.abs(scrollHeight - scrollTop - clientHeight) < 5;
+    setScrollPosition(scrollTop);
+
+    // If user has scrolled up from bottom
+    if (!isAtBottom) {
+      setUserHasScrolled(true);
+    } else {
+      // If user scrolled back to bottom, reset the flag
+      setUserHasScrolled(false);
+    }
+  };
 
   useEffect(() => {
-    if (listRef.current) {
+    if (listRef.current && scrollPosition > 0) {
+      listRef.current.scrollTop = scrollPosition;
+    }
+  }, [expanded]);
+
+  // Only auto-scroll when expanded state changes if user hasn't scrolled up
+  useEffect(() => {
+    if (expanded && !userHasScrolled && listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight;
     }
-  }, [steps, expanded]);
+  }, [expanded, userHasScrolled]);
 
   if (steps.length === 0 && !loading) {
     return <ResThinkingMessage />;
@@ -139,6 +186,7 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
               ref={listRef}
               className="relative list-none space-y-0 text-sm mt-4 max-h-64 overflow-y-auto pr-2"
               style={{ transition: 'max-height 0.2s' }}
+              onScroll={handleScroll}
             >
               {steps
                 .filter((step) => allowedTypes.includes(step.type))
@@ -179,7 +227,7 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                                           style={{ textDecoration: 'none' }}
                                         >
                                           <img
-                                            src={urlItem.favicon}
+                                            src={urlItem.favicon || '/favicon.ico'}
                                             alt="favicon"
                                             className="w-4 h-4 flex-shrink-0"
                                           />
@@ -241,46 +289,3 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
   );
 }
 
-function CircularTimer({ seconds }: { seconds: number }) {
-  const radius = 16;
-  const stroke = 4;
-  const normalizedRadius = radius - stroke / 2;
-  const circumference = normalizedRadius * 2 * Math.PI;
-  const progress = (seconds % 60) / 60;
-  const strokeDashoffset = circumference * (1 - progress);
-
-  return (
-    <svg height={radius * 2} width={radius * 2} className="block" style={{ display: 'block' }}>
-      <circle
-        stroke="#d1fae5"
-        fill="#f0fdf4"
-        strokeWidth={stroke}
-        r={normalizedRadius}
-        cx={radius}
-        cy={radius}
-      />
-      <circle
-        stroke="#10b981"
-        fill="transparent"
-        strokeWidth={stroke}
-        strokeDasharray={circumference + ' ' + circumference}
-        style={{ strokeDashoffset, transition: 'stroke-dashoffset 0.5s linear' }}
-        r={normalizedRadius}
-        cx={radius}
-        cy={radius}
-      />
-      <text
-        x="50%"
-        y="50%"
-        textAnchor="middle"
-        dy=".3em"
-        fontSize="12"
-        fill="#047857"
-        fontFamily="monospace"
-        fontWeight="bold"
-      >
-        {seconds}
-      </text>
-    </svg>
-  );
-}
