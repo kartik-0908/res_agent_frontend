@@ -26,7 +26,7 @@ function PureSuggestedActions({
     {
       title: 'What’s the Class I vs IIa guidance on DOACs versus',
       label: ` warfarin for non-valvular AF (ACC 2023)?`,
-      action: `“What’s the Class I vs IIa guidance on DOACs versus warfarin for non-valvular AF (ACC 2023)`,
+      action: `What’s the Class I vs IIa guidance on DOACs versus warfarin for non-valvular AF (ACC 2023)`,
     },
     {
       title: 'Compare STEMI vs NSTEMI dual-antiplatelet ',

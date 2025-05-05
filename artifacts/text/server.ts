@@ -1,20 +1,23 @@
 import { smoothStream, streamText } from 'ai';
-import { myProvider } from '@/lib/ai/providers';
 import { createDocumentHandler } from '@/lib/artifacts/server';
 import { updateDocumentPrompt } from '@/lib/ai/prompts';
 import { azure } from '@/lib/ai/azure';
 
 export const textDocumentHandler = createDocumentHandler<'text'>({
   kind: 'text',
-  onCreateDocument: async ({ title, dataStream }) => {
+  onCreateDocument: async ({ title, supportingContent, dataStream }) => {
     let draftContent = '';
+
+    const prompt = `${title}\n\n  findings of the research agent :${supportingContent}`
+
+    console.log('prompt for creating document: ', prompt);
 
     const { fullStream } = streamText({
       model: azure('o1'),
       system:
-        'Write about the given topic. Markdown is supported. Use headings wherever appropriate.',
+        'Write about the given topic. Markdown is supported. Use headings wherever appropriate. use findings of research agent to create the document. Strictly include references given in the supported content ',
       experimental_transform: smoothStream({ chunking: 'word' }),
-      prompt: title,
+      prompt: prompt,
     });
 
     for await (const delta of fullStream) {
@@ -36,10 +39,12 @@ export const textDocumentHandler = createDocumentHandler<'text'>({
   },
   onUpdateDocument: async ({ document, description, dataStream }) => {
     let draftContent = '';
+    const prompt = updateDocumentPrompt(document.content, 'text')
+    console.log('prompt for updating document: ', prompt);
 
     const { fullStream } = streamText({
-      model: myProvider.languageModel('artifact-model'),
-      system: updateDocumentPrompt(document.content, 'text'),
+      model: azure('o1'),
+      system: prompt,
       experimental_transform: smoothStream({ chunking: 'word' }),
       prompt: description,
       experimental_providerMetadata: {

@@ -19,6 +19,7 @@ export interface SaveDocumentProps {
 export interface CreateDocumentCallbackProps {
   id: string;
   title: string;
+  supportingContent?: string;
   dataStream: DataStreamWriter;
   session: Session;
 }
@@ -49,6 +50,7 @@ export function createDocumentHandler<T extends ArtifactKind>(config: {
         title: args.title,
         dataStream: args.dataStream,
         session: args.session,
+        supportingContent: args.supportingContent,
       });
 
       if (args.session?.user?.id) {

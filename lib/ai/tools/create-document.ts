@@ -18,9 +18,10 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
       'Create a document for a writing or content creation activities. This tool will call other functions that will generate the contents of the document based on the title and kind.',
     parameters: z.object({
       title: z.string(),
+      supportingContent: z.string().describe('Supporting content to create the document, e.g. research report by researchAgent.'),
       kind: z.enum(artifactKinds),
     }),
-    execute: async ({ title, kind }) => {
+    execute: async ({ title, kind, supportingContent }) => {
       const id = generateUUID();
 
       dataStream.writeData({
@@ -57,6 +58,7 @@ export const createDocument = ({ session, dataStream }: CreateDocumentProps) =>
         title,
         dataStream,
         session,
+        supportingContent
       });
 
       dataStream.writeData({ type: 'finish', content: '' });
