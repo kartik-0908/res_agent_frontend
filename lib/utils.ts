@@ -74,14 +74,5 @@ export function getTrailingMessageId({
   return trailingMessage.id;
 }
 
-export function getUrlMeta(url: string) {
-  const urlMeta = new URL(url);
-  const title = urlMeta.hostname;
-  let favicon = urlMeta.origin + '/favicon.ico';
 
-  if (urlMeta.origin === 'null') {
-    favicon = '';
-  }
 
-  return { title, favicon };
-}

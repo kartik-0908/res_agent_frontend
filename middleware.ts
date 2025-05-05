@@ -9,6 +9,11 @@ export async function middleware(request: NextRequest) {
    * Playwright starts the dev server and requires a 200 status to
    * begin the tests, so this ensures that the tests can start
    */
+
+  if (pathname.startsWith('/api/url-meta')) {
+    return NextResponse.next();
+  }
+
   if (pathname.startsWith('/ping')) {
     return new Response('pong', { status: 200 });
   }
@@ -23,7 +28,7 @@ export async function middleware(request: NextRequest) {
     secureCookie: !isDevelopmentEnvironment,
   });
 
-  if (!token) {
+  if (!token && !pathname.startsWith('/api/url-meta')) {
     const redirectUrl = encodeURIComponent(request.url);
 
     return NextResponse.redirect(
