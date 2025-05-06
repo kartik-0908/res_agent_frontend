@@ -22,6 +22,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from './toast';
 import { LoaderIcon } from './icons';
 import { guestRegex } from '@/lib/constants';
+import { Upgrade } from './upgrade';
 
 export function SidebarUserNav({ user }: { user: User }) {
   const router = useRouter();
@@ -32,6 +33,9 @@ export function SidebarUserNav({ user }: { user: User }) {
 
   return (
     <SidebarMenu>
+      <SidebarMenuItem>
+        <Upgrade />
+      </SidebarMenuItem>
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -71,6 +75,13 @@ export function SidebarUserNav({ user }: { user: User }) {
             side="top"
             className="w-[--radix-popper-anchor-width]"
           >
+            {/* <DropdownMenuItem
+              data-testid="user-nav-item-theme"
+              className="cursor-pointer"
+              onSelect={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            >
+              Upgrade
+            </DropdownMenuItem> */}
             <DropdownMenuItem
               data-testid="user-nav-item-theme"
               className="cursor-pointer"

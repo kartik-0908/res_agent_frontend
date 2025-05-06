@@ -9,12 +9,14 @@ import {
   primaryKey,
   foreignKey,
   boolean,
+  integer,
 } from 'drizzle-orm/pg-core';
 
 export const user = pgTable('User', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   email: varchar('email', { length: 64 }).notNull(),
   password: varchar('password', { length: 64 }),
+  stripeCustomerId: varchar('stripeCustomerId', { length: 64 }),
 });
 
 export type User = InferSelectModel<typeof user>;
@@ -168,3 +170,32 @@ export const stream = pgTable(
 );
 
 export type Stream = InferSelectModel<typeof stream>;
+
+
+export const subscription = pgTable('Subscription', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  // Stripe's subscription identifier
+  stripeSubscriptionId: varchar('stripeSubscriptionId', { length: 128 }).notNull(),
+  userId: uuid('userId').notNull().references(() => user.id),
+  // Status may follow Stripe's status values
+  status: varchar('status', {
+    enum: [
+      'active',
+      'incomplete',
+      'incomplete_expired',
+      'canceled',
+      'past_due',
+      'trialing',
+    ],
+  }).notNull(),
+  // Stripe Price ID for the plan
+  priceId: varchar('priceId', { length: 128 }).notNull(),
+  quantity: integer('quantity').notNull().default(1),
+  cancelAtPeriodEnd: boolean('cancelAtPeriodEnd').notNull().default(false),
+  currentPeriodStart: timestamp('currentPeriodStart').notNull(),
+  currentPeriodEnd: timestamp('currentPeriodEnd').notNull(),
+  cancelAt: timestamp('cancelAt'),
+  createdAt: timestamp('createdAt').notNull(),
+  updatedAt: timestamp('updatedAt').notNull(),
+});
+export type Subscription = InferSelectModel<typeof subscription>;

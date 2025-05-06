@@ -15,6 +15,13 @@
       "when": 1746217608151,
       "tag": "0008_normal_wildside",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1746557958924,
+      "tag": "0009_easy_misty_knight",
+      "breakpoints": true
     }
   ]
 }
