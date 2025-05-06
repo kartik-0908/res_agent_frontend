@@ -8,8 +8,8 @@ import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chat.makaicare.com'),
-  title: 'MakaiGPT',
-  description: 'Makai GPT is powered by deep research',
+  title: 'MakaiCardio',
+  description: 'Makai Cardio is powered by deep research',
 };
 
 export const viewport = {
