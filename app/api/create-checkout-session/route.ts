@@ -17,7 +17,7 @@ export async function POST(request: Request) {
         },
       ],
       success_url: `${request.headers.get('origin')}/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${request.headers.get('origin')}/subscriptions`,
+      cancel_url: `${request.headers.get('origin')}`,
     });
 
     return NextResponse.json({ sessionId: session.id });

@@ -27,6 +27,7 @@ import {
   type DBMessage,
   type Chat,
   stream,
+  subscription,
 } from './schema';
 import type { ArtifactKind } from '@/components/artifact';
 import { generateUUID } from '../utils';
@@ -525,4 +526,65 @@ export async function getStreamIdsByChatId({ chatId }: { chatId: string }) {
     console.error('Failed to get stream ids by chat id from database');
     throw error;
   }
+}
+
+export async function createSubs(stripeCustomerId: string, stripeSubscriptionId: string, userId: string, priceId: string, quantity: number, cancelAtPeriodEnd: boolean, currentPeriodStart: Date, currentPeriodEnd: Date, cancelAt: Date | null) {
+  try {
+    const now = new Date();
+    await db.transaction(async (tx) => {
+      await tx
+        .update(user)
+        .set({ stripeCustomerId })
+        .where(eq(user.id, userId));
+
+      await tx.insert(subscription).values({
+        stripeSubscriptionId,
+        userId,
+        status: 'active',
+        priceId,
+        quantity,
+        cancelAtPeriodEnd,
+        currentPeriodStart,
+        currentPeriodEnd,
+        cancelAt,
+        createdAt: now,
+        updatedAt: now,
+      });
+    });
+
+  } catch (error) {
+    console.error('Failed to create subscription in database');
+    throw error;
+  }
+}
+
+
+export async function hasActiveSubscriptionByEmail(email: string): Promise<boolean> {
+  // 1) Find the user by email
+  const [u] = await db
+    .select({ id: user.id })
+    .from(user)
+    .where(eq(user.email, email))
+    .limit(1)
+
+  if (!u) {
+    return false
+  }
+
+  const now = new Date()
+
+  // 2) Combine all three conditions into a single `and(...)`
+  const subs = await db
+    .select()
+    .from(subscription)
+    .where(
+      and(
+        eq(subscription.userId, u.id),
+        eq(subscription.status, 'active'),
+        gt(subscription.currentPeriodEnd, now)
+      )
+    )
+    .limit(1)
+
+  return subs.length > 0
 }

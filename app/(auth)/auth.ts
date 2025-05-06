@@ -1,12 +1,12 @@
 import { compare } from 'bcrypt-ts';
 import NextAuth, { type DefaultSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
-import { createGuestUser, getUser } from '@/lib/db/queries';
+import { createGuestUser, getUser, hasActiveSubscriptionByEmail } from '@/lib/db/queries';
 import { authConfig } from './auth.config';
 import { DUMMY_PASSWORD } from '@/lib/constants';
 import type { DefaultJWT } from 'next-auth/jwt';
 
-export type UserType = 'guest' | 'regular';
+export type UserType = 'guest' | 'regular' | 'subscriber';
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
@@ -59,6 +59,11 @@ export const {
 
         if (!passwordsMatch) return null;
 
+        const check = await hasActiveSubscriptionByEmail(email);
+        console.log('check', check);
+        if (check) {
+          return { ...user, type: 'subscriber' };
+        }
         return { ...user, type: 'regular' };
       },
     }),

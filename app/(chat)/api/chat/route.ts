@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
     if (messageCount > entitlementsByUserType[userType].maxMessagesPerDay) {
       return new Response(
-        'You have exceeded your maximum number of messages for the day! Please try again later.',
+        'You have exceeded your maximum number of messages for the day! Please try again later or upgrade your plan.',
         {
           status: 429,
         },

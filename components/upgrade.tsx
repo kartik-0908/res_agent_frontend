@@ -33,7 +33,9 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
 
 export function Upgrade(): ReactElement {
     const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
-    const { data, status } = useSession();
+    const { data } = useSession();
+    console.log(data?.user);
+
     const isGuest = guestRegex.test(data?.user?.email ?? '');
 
 
@@ -47,6 +49,16 @@ export function Upgrade(): ReactElement {
             <Link href={'/login'}>
                 <Button variant="outline" className="w-full">
                     Upgrade
+                </Button>
+            </Link>
+        )
+    }
+
+    if(data?.user?.type === 'subscriber') {
+        return (
+            <Link href={'https://billing.stripe.com/p/login/00g03Ogjw3Iq7rW6oo'}>
+                <Button variant="outline" className="w-full">
+                    Managae Subscription
                 </Button>
             </Link>
         )
@@ -162,7 +174,7 @@ export function Upgrade(): ReactElement {
                             </p>
                         </CardContent>
                         <CardFooter>
-                            <Button className="w-full">Upgrade Now</Button>
+                            <Button onClick={handleSubscribe} className="w-full">Upgrade Now</Button>
                         </CardFooter>
                     </Card>
                 </div>

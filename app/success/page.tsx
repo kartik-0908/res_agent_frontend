@@ -1,13 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useEffect, useState, ReactElement } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-export default function SuccessPage() {
-  const [status, setStatus] = useState('loading');
-  const [customerEmail, setCustomerEmail] = useState('');
+type Status = 'loading' | 'succeeded' | 'failed';
+
+export default function SuccessPage(): ReactElement {
+  const [status, setStatus] = useState<Status>('loading');
+  const [customerEmail, setCustomerEmail] = useState<string>('');
   const searchParams = useSearchParams();
   const sessionId = searchParams.get('session_id');
+  const router = useRouter();
 
   useEffect(() => {
     if (sessionId) {
@@ -16,38 +22,66 @@ export default function SuccessPage() {
   }, [sessionId]);
 
   async function fetchSessionStatus() {
-    const response = await fetch('/api/check-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ sessionId }),
-    });
-
-    const { session, error } = await response.json();
-
-    if (error) {
+    setStatus('loading');
+    try {
+      const res = await fetch('/api/check-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId }),
+      });
+      const { session, error } = await res.json();
+      if (error || !session) throw new Error(error || 'No session data');
+      setCustomerEmail(session.customer_email);
+      setStatus('succeeded');
+    } catch {
       setStatus('failed');
-      console.error(error);
-      return;
     }
-
-    setStatus(session.status);
-    setCustomerEmail(session.customer_email);
-  }
-
-  if (status === 'loading') {
-    return <div>Loading...</div>;
-  }
-
-  if (status === 'failed') {
-    return <div>Failed to process subscription. Please try again.</div>;
   }
 
   return (
-    <div>
-      <h1>Subscription Successful!</h1>
-      <p>Thank you for your subscription. A confirmation email has been sent to {customerEmail}.</p>
+    <div className="min-h-screen flex items-center justify-center p-6">
+      {status === 'loading' && (
+        <Card className="w-full max-w-md">
+          <CardContent className="flex flex-col items-center space-y-4 py-8">
+            <Loader2 className="animate-spin h-10 w-10" />
+            <p className="text-center">Processing your subscription…</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {status === 'failed' && (
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
+            <CardTitle>
+              <XCircle className="inline-block h-8 w-8 mr-2" />
+              Subscription Failed
+            </CardTitle>
+            <CardDescription>
+              We couldn’t process your subscription. Please try again.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="flex justify-center">
+            <Button onClick={fetchSessionStatus}>Retry</Button>
+          </CardFooter>
+        </Card>
+      )}
+
+      {status === 'succeeded' && (
+        <Card className="w-full max-w-sm">
+          <CardHeader className="text-center">
+            <CardTitle>
+              <CheckCircle2 className="inline-block h-8 w-8 mr-2" />
+              Subscription Successful!
+            </CardTitle>
+            <CardDescription>
+              A confirmation email has been sent.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="flex justify-center">
+            <Button onClick={() => router.push('/')}>Go to Home</Button>
+          </CardFooter>
+        </Card>
+      )}
     </div>
   );
 }
