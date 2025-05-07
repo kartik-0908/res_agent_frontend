@@ -42,7 +42,7 @@ function SuccessPage(): ReactElement {
             const { session, error } = await res.json();
             if (error || !session) throw new Error(error || 'No session data');
             setStatus('succeeded');
-            update({ ...session, type: 'subscriber' });
+            update({ ...session, user: { ...session.user, type: 'subscriber' } });
         } catch {
             setStatus('failed');
         }
