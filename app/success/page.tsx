@@ -6,6 +6,7 @@ import { Loader2, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Suspense } from 'react'
+import { useSession } from 'next-auth/react';
 
 type Status = 'loading' | 'succeeded' | 'failed';
 
@@ -18,6 +19,7 @@ export default function WrappedSuccessPage() {
 }
 
 function SuccessPage(): ReactElement {
+    const { update } = useSession();
     const [status, setStatus] = useState<Status>('loading');
     const searchParams = useSearchParams();
     const sessionId = searchParams.get('session_id');
@@ -40,6 +42,7 @@ function SuccessPage(): ReactElement {
             const { session, error } = await res.json();
             if (error || !session) throw new Error(error || 'No session data');
             setStatus('succeeded');
+            update({ ...session, type: 'subscriber' });
         } catch {
             setStatus('failed');
         }
