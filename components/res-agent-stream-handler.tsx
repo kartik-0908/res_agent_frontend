@@ -136,19 +136,19 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
   }
 
   return (
-    <div className="flex justify-center items-center p-4">
-      <Card className="w-full max-w-xl transition-transform duration-200 ">
-        <CardHeader className='px-4 py-3'>
+    <div className="flex justify-center items-center p-2 sm:p-4">
+      <Card className="w-full max-w-full sm:max-w-xl transition-transform duration-200">
+        <CardHeader className="px-2 py-2 sm:px-4 sm:py-3">
           <div className="flex justify-between items-center">
-            <div className="flex items-center gap-3">
-              <h2 className="text-lg font-semibold">Research Agent</h2>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <h2 className="text-base sm:text-lg font-semibold">Research Agent</h2>
               {!researchComplete ? (
-                <div className="flex items-center gap-2">
-                  <div className="relative h-5 w-5">
+                <div className="flex items-center gap-1 sm:gap-2 min-w-[120px]">
+                  <div className="relative h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center">
                     <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-blue-500 border-r-blue-500 animate-spin"></div>
                   </div>
                   <span
-                    className="text-sm font-medium"
+                    className="text-xs sm:text-sm font-medium whitespace-nowrap"
                     style={{
                       backgroundImage: `linear-gradient(
                         90deg, 
@@ -166,25 +166,29 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                   </span>
                 </div>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2">
                   <Clock className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-600">
+                  <span className="text-xs sm:text-sm font-medium text-green-600">
                     Done in {completedTime ?? timer}s
                   </span>
                 </div>
               )}
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setExpanded((prev) => !prev)} className="p-1 hover:bg-zinc-100 rounded-md">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setExpanded((prev) => !prev)}
+              className="p-1 hover:bg-zinc-100 rounded-md"
+            >
               {expanded ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
             </Button>
           </div>
         </CardHeader>
-        <CardContent className='pt-0'>
-
+        <CardContent className="pt-0">
           {expanded && (
             <ul
               ref={listRef}
-              className="relative list-none space-y-0 text-sm mt-4 max-h-64 overflow-y-auto pr-2"
+              className="relative list-none space-y-0 text-sm mt-4 max-h-56 sm:max-h-64 overflow-y-auto pr-1 sm:pr-2"
               style={{ transition: 'max-height 0.2s' }}
               onScroll={handleScroll}
             >
@@ -210,39 +214,36 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                               <div className="italic text-gray-500">Searching the web for relevant content...</div>
                             ) : (
                               <ul className="list-disc list-inside space-y-1">
-                                {step.research_urls
-                                  .map((urlItem, idx) => {
-                                    return (
-                                      <li
-                                        key={idx}
-                                        className="transition-all duration-200 
-                                          bg-gray-100 border border-gray-200 
-                                          dark:bg-gray-700 dark:border-gray-600 
-                                          rounded-full px-3 py-2 flex items-center gap-2 max-w-xs cursor-pointer 
-                                          hover:scale-105 hover:shadow-md"
-                                        title={urlItem.title}
-                                        style={{ overflow: 'hidden' }}
-                                      >
-                                        <a
-                                          href={urlItem.url}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          className="flex items-center gap-2 w-full"
-                                          style={{ textDecoration: 'none' }}
-                                        >
-                                          <img
-                                            src={urlItem.favicon || '/favicon.ico'}
-                                            alt="favicon"
-                                            className="w-4 h-4 flex-shrink-0"
-                                          />
-                                          <span className="block text-gray-500 text-xs font-medium">
-                                            {urlItem.title.split(' ').slice(0, 6).join(' ')}
-                                            {urlItem.title.split(' ').length > 6 ? '...' : ''}
-                                          </span>
-                                        </a>
-                                      </li>
-                                    )
-                                  })}
+                                {step.research_urls.map((urlItem, idx) => (
+                                  <li
+                                    key={idx}
+                                    className="transition-all duration-200 
+                                      bg-gray-100 border border-gray-200 
+                                      dark:bg-gray-700 dark:border-gray-600 
+                                      rounded-full px-3 py-2 flex items-center gap-2 max-w-full sm:max-w-xs cursor-pointer 
+                                      hover:scale-105 hover:shadow-md"
+                                    title={urlItem.title}
+                                    style={{ overflow: 'hidden' }}
+                                  >
+                                    <a
+                                      href={urlItem.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="flex items-center gap-2 w-full min-w-0"
+                                      style={{ textDecoration: 'none' }}
+                                    >
+                                      <img
+                                        src={urlItem.favicon || '/favicon.ico'}
+                                        alt="favicon"
+                                        className="w-4 h-4 flex-shrink-0"
+                                      />
+                                      <span className="block text-gray-500 dark:text-gray-300 text-xs font-medium truncate max-w-[140px] sm:max-w-[200px]">
+                                        {urlItem.title.split(' ').slice(0, 6).join(' ')}
+                                        {urlItem.title.split(' ').length > 6 ? '...' : ''}
+                                      </span>
+                                    </a>
+                                  </li>
+                                ))}
                               </ul>
                             )}
                           </div>
@@ -281,8 +282,8 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                 ))}
               {loading && (
                 <li className="flex justify-center items-center py-2">
-                  <Loader2 className="animate-spin w-5 h-5 text-muted-foreground" />
-                  <span className="ml-2 text-muted-foreground">Processing...</span>
+                  <Loader2 className="animate-spin w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
+                  <span className="ml-2 text-xs sm:text-sm text-muted-foreground">Processing...</span>
                 </li>
               )}
             </ul>
