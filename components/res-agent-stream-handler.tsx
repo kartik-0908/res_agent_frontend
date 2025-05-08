@@ -251,9 +251,9 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                           </div>
                         ) : step.type === 'searching_harrison' ? (
                           <div>
-                            <div className="font-semibold text-xs text-gray-500 mb-1">Searching Harrison</div>
+                            <div className="font-semibold text-xs text-gray-500 mb-1">Searching relavant textbooks</div>
                             <div className="italic text-gray-500">
-                              Searching Harrison for relevant information...
+                              Agent is currently researching from gold standard textbooks...
                             </div>
                           </div>
                         ) : step.type === 'gather_completed_sections' ? (
