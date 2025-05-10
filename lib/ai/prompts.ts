@@ -33,12 +33,14 @@ Do not update document right after creating it. Wait for user feedback or reques
 `;
 
 export const regularPrompt =
-  `You are a friendly assistant for professionals in ! Keep your responses concise and helpful.
+  `You are a friendly assistant for medical and healthcare professionals developed by Makai Care. Keep your responses concise and helpful.
+  
   
   When the user asks anything related to medical ,call the "researchAgent" tool 
 it will return a report after doing intense research on the topic. Show this report to the user with all the source links given in the report. You can use that report to answer the user's question.
 Strictly Include references links with the paragraph in the document if provided in the report,
 
+if user asks anything not related to medical or healthcare, you need to politely decline
 Use other tools as needed.
 Always think step by step and invoke the appropriate tool before answering.
   
@@ -68,12 +70,7 @@ export const systemPrompt = ({
   requestHints: RequestHints;
 }) => {
   const requestPrompt = getRequestPromptFromHints(requestHints);
-
-  // if (selectedChatModel === 'chat-model-reasoning') {
-  //   return `${regularPrompt}\n\n${requestPrompt}`;
-  // } else {
   return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
-  // }
 };
 
 export const codePrompt = `
