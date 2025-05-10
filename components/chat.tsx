@@ -177,6 +177,8 @@ export function Chat({
         votes={votes}
         isReadonly={isReadonly}
         selectedVisibilityType={visibilityType}
+        deepResearch={deepResearch}
+        handleDeepResearchClick={handleDeepResearchClick}
       />
     </>
   );
