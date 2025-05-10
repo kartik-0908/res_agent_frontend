@@ -27,16 +27,37 @@ import { isProductionEnvironment } from '@/lib/constants';
 import { entitlementsByUserType } from '@/lib/ai/entitlements';
 import { postRequestBodySchema, type PostRequestBody } from './schema';
 import { geolocation } from '@vercel/functions';
-import { createResumableStreamContext } from 'resumable-stream';
+import {
+  createResumableStreamContext,
+  type ResumableStreamContext,
+} from 'resumable-stream';
 import { after } from 'next/server';
 import type { Chat } from '@/lib/db/schema';
 import { azure } from '@/lib/ai/azure';
 import { researchAgent } from '@/lib/ai/tools/research-agent';
+import { differenceInSeconds } from 'date-fns';
 
+let globalStreamContext: ResumableStreamContext | null = null;
 
-const streamContext = createResumableStreamContext({
-  waitUntil: after,
-});
+function getStreamContext() {
+  if (!globalStreamContext) {
+    try {
+      globalStreamContext = createResumableStreamContext({
+        waitUntil: after,
+      });
+    } catch (error: any) {
+      if (error.message.includes('REDIS_URL')) {
+        console.log(
+          ' > Resumable streams are disabled due to missing REDIS_URL',
+        );
+      } else {
+        console.error(error);
+      }
+    }
+  }
+
+  return globalStreamContext;
+}
 
 export async function POST(request: Request) {
   let requestBody: PostRequestBody;
@@ -138,13 +159,13 @@ export async function POST(request: Request) {
             // selectedChatModel === 'chat-model-reasoning'
             //   ? []
             //   : 
-              [
-                  'getWeather',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                  'researchAgent',
-                ],
+            [
+              'getWeather',
+              'createDocument',
+              'updateDocument',
+              'requestSuggestions',
+              'researchAgent',
+            ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools: {
@@ -211,9 +232,15 @@ export async function POST(request: Request) {
       },
     });
 
-    return new Response(
-      await streamContext.resumableStream(streamId, () => stream),
-    );
+    const streamContext = getStreamContext();
+
+    if (streamContext) {
+      return new Response(
+        await streamContext.resumableStream(streamId, () => stream),
+      );
+    } else {
+      return new Response(stream);
+    }
   } catch (_) {
     return new Response('An error occurred while processing your request!', {
       status: 500,
@@ -222,6 +249,12 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
+  const streamContext = getStreamContext();
+  const resumeRequestedAt = new Date();
+
+  if (!streamContext) {
+    return new Response(null, { status: 204 });
+  }
   const { searchParams } = new URL(request.url);
   const chatId = searchParams.get('chatId');
 
@@ -264,15 +297,48 @@ export async function GET(request: Request) {
   }
 
   const emptyDataStream = createDataStream({
-    execute: () => {},
+    execute: () => { },
   });
 
-  return new Response(
-    await streamContext.resumableStream(recentStreamId, () => emptyDataStream),
-    {
-      status: 200,
-    },
+  const stream = await streamContext.resumableStream(
+    recentStreamId,
+    () => emptyDataStream,
+
+
   );
+
+  if (!stream) {
+    const messages = await getMessagesByChatId({ id: chatId });
+    const mostRecentMessage = messages.at(-1);
+
+    if (!mostRecentMessage) {
+      return new Response(emptyDataStream, { status: 200 });
+    }
+
+    if (mostRecentMessage.role !== 'assistant') {
+      return new Response(emptyDataStream, { status: 200 });
+    }
+
+    const messageCreatedAt = new Date(mostRecentMessage.createdAt);
+
+    if (differenceInSeconds(resumeRequestedAt, messageCreatedAt) > 15) {
+      return new Response(emptyDataStream, { status: 200 });
+    }
+
+    const restoredStream = createDataStream({
+      execute: (buffer) => {
+        buffer.writeData({
+          type: 'append-message',
+          message: JSON.stringify(mostRecentMessage),
+        });
+      },
+    });
+
+    return new Response(restoredStream, { status: 200 });
+  }
+
+  return new Response(stream, { status: 200 });
+
 }
 
 export async function DELETE(request: Request) {

@@ -18,7 +18,7 @@ import { toast } from './toast';
 import type { Session } from 'next-auth';
 import { useSearchParams } from 'next/navigation';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
-import { useStreamedSteps } from './streamed-steps-context';
+import { useAutoResume } from '@/hooks/use-auto-resume';
 
 export function Chat({
   id,
@@ -27,7 +27,7 @@ export function Chat({
   initialVisibilityType,
   isReadonly,
   session,
-  autoResume,
+  autoResume
 }: {
   id: string;
   initialMessages: Array<UIMessage>;
@@ -55,6 +55,7 @@ export function Chat({
     stop,
     reload,
     experimental_resume,
+    data
   } = useChat({
     id,
     initialMessages,
@@ -77,17 +78,6 @@ export function Chat({
       });
     },
   });
-
-  const { steps } = useStreamedSteps();
-
-  useEffect(() => {
-    if (autoResume) {
-      experimental_resume();
-    }
-
-    // note: this hook has no dependencies since it only needs to run once
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const searchParams = useSearchParams();
   const query = searchParams.get('query');
@@ -113,6 +103,13 @@ export function Chat({
 
   const [attachments, setAttachments] = useState<Array<Attachment>>([]);
   const isArtifactVisible = useArtifactSelector((state) => state.isVisible);
+  useAutoResume({
+    autoResume,
+    initialMessages,
+    experimental_resume,
+    data,
+    setMessages,
+  });
 
   return (
     <>

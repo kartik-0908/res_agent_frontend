@@ -12,7 +12,7 @@ import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
 import { Weather } from './weather';
 import equal from 'fast-deep-equal';
-import { cn } from '@/lib/utils';
+import { cn, sanitizeText } from '@/lib/utils';
 import { Button } from './ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
 import { MessageEditor } from './message-editor';
@@ -131,7 +131,7 @@ const PurePreviewMessage = ({
                             message.role === 'user',
                         })}
                       >
-                        <Markdown>{part.text}</Markdown>
+                        <Markdown>{sanitizeText(part.text)}</Markdown>
                       </div>
                     </div>
                   );
@@ -304,11 +304,11 @@ export const ThinkingMessage = () => {
                   rgba(255,255,255,1) ${position}%, 
                   rgba(100,100,100,1) ${position + 5}%
                 )`,
-                 WebkitBackgroundClip: 'text',
-                 backgroundClip: 'text',
-                 color: 'transparent',
-                 backgroundSize: '100% 100%',
-               }}
+                WebkitBackgroundClip: 'text',
+                backgroundClip: 'text',
+                color: 'transparent',
+                backgroundSize: '100% 100%',
+              }}
             >
               Just a moment...
             </span>
