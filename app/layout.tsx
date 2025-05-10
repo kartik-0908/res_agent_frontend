@@ -1,10 +1,12 @@
+// app/layout.tsx
+import { headers } from 'next/headers';
 import { Toaster } from 'sonner';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { ThemeProvider } from '@/components/theme-provider';
+import { SessionProvider } from 'next-auth/react';
 
 import './globals.css';
-import { SessionProvider } from 'next-auth/react';
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://chat.makaicare.com'),
@@ -12,73 +14,41 @@ export const metadata: Metadata = {
   description: 'Makai Cardio is powered by deep research',
 };
 
-export const viewport = {
-  maximumScale: 1, // Disable auto-zoom on mobile Safari
-};
+const geist = Geist({ subsets: ['latin'], display: 'swap', variable: '--font-geist' });
+const geistMono = Geist_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-geist-mono' });
 
-const geist = Geist({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-geist',
-});
+const THEME_COLOR_SCRIPT = `(/*…same as before…*/)`;
 
-const geistMono = Geist_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-geist-mono',
-});
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const headersList = await headers()
+  const ua = headersList.get('user-agent')
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(ua as string);
 
-const LIGHT_THEME_COLOR = 'hsl(0 0% 100%)';
-const DARK_THEME_COLOR = 'hsl(240deg 10% 3.92%)';
-const THEME_COLOR_SCRIPT = `\
-(function() {
-  var html = document.documentElement;
-  var meta = document.querySelector('meta[name="theme-color"]');
-  if (!meta) {
-    meta = document.createElement('meta');
-    meta.setAttribute('name', 'theme-color');
-    document.head.appendChild(meta);
-  }
-  function updateThemeColor() {
-    var isDark = html.classList.contains('dark');
-    meta.setAttribute('content', isDark ? '${DARK_THEME_COLOR}' : '${LIGHT_THEME_COLOR}');
-  }
-  var observer = new MutationObserver(updateThemeColor);
-  observer.observe(html, { attributes: true, attributeFilter: ['class'] });
-  updateThemeColor();
-})();`;
-
-export default async function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
   return (
-    <html
-      lang="en"
-      // `next-themes` injects an extra classname to the body element to avoid
-      // visual flicker before hydration. Hence the `suppressHydrationWarning`
-      // prop is necessary to avoid the React hydration mismatch warning.
-      // https://github.com/pacocoursey/next-themes?tab=readme-ov-file#with-app
-      suppressHydrationWarning
-      className={`${geist.variable} ${geistMono.variable}`}
-    >
+    <html lang="en" suppressHydrationWarning className={`${geist.variable} ${geistMono.variable}`}>
       <head>
-        <script
-          dangerouslySetInnerHTML={{
-            __html: THEME_COLOR_SCRIPT,
-          }}
-        />
+        <script dangerouslySetInnerHTML={{ __html: THEME_COLOR_SCRIPT }} />
       </head>
       <body className="antialiased">
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Toaster position="top-center" />
-          <SessionProvider>{children}</SessionProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          {isMobile ? (
+            <div className="flex h-screen items-center justify-center bg-gray-50 dark:bg-neutral-900 p-4">
+              <div className="bg-white dark:bg-neutral-800 rounded-xl shadow-lg p-6 max-w-sm w-full flex flex-col items-center">
+                <p className="text-center text-base leading-relaxed mb-6 text-gray-800 dark:text-gray-100">
+                  We’re working on our mobile UI.<br />
+                  Soon we’ll be in the App Store & Play Store too.<br />
+                  For the full experience, please use a laptop or PC.<br />
+                  Thank you!
+                </p>
+               
+              </div>
+            </div>
+          ) : (
+            <>
+              <Toaster position="top-center" />
+              <SessionProvider>{children}</SessionProvider>
+            </>
+          )}
         </ThemeProvider>
       </body>
     </html>

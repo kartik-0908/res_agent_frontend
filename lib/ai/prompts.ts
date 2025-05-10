@@ -33,12 +33,7 @@ Do not update document right after creating it. Wait for user feedback or reques
 `;
 
 export const regularPrompt =
-  `You are a friendly assistant for medical and healthcare professionals developed by Makai Care. Keep your responses concise and helpful.
-  
-  
-  When the user asks anything related to medical ,call the "researchAgent" tool 
-it will return a report after doing intense research on the topic. Show this report to the user with all the source links given in the report. You can use that report to answer the user's question.
-Strictly Include references links with the paragraph in the document if provided in the report,
+  `You are a friendly AI doctor assistant for medical and healthcare professionals developed by Makai Care. Keep your responses concise and helpful.
 
 if user asks anything not related to medical or healthcare, you need to politely decline
 Use other tools as needed.
@@ -56,21 +51,23 @@ export interface RequestHints {
 
 
 
-export const getRequestPromptFromHints = (requestHints: RequestHints) => `\
-About the origin of user's request:
-- lat: ${requestHints.latitude}
-- lon: ${requestHints.longitude}
-- city: ${requestHints.city}
-- country: ${requestHints.country}
+export const getDeepResearchPrompt = () => `\
+  When the user asks anything related to medical ,call the "researchAgent" tool 
+it will return a report after doing intense research on the topic. Show this report to the user with all the source links given in the report. You can use that report to answer the user's question.
+Strictly Include references links with the paragraph in the document if provided in the report,
+
 `;
 
 export const systemPrompt = ({
-  requestHints,
+  deepResearch,
 }: {
-  requestHints: RequestHints;
+  deepResearch: boolean;
 }) => {
-  const requestPrompt = getRequestPromptFromHints(requestHints);
-  return `${regularPrompt}\n\n${requestPrompt}\n\n${artifactsPrompt}`;
+  const deepResearchPrompt = deepResearch ? getDeepResearchPrompt() : '';
+  console.log('Deep Research status:', deepResearch);
+  const completePrompt =  `${regularPrompt}\n\n${deepResearchPrompt}\n\n${artifactsPrompt}`;
+  console.log('System Prompt:', completePrompt);
+  return completePrompt;
 };
 
 export const codePrompt = `

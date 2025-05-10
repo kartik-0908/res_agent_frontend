@@ -71,8 +71,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { id, message } =
-      requestBody;
+    const { id, message, deepResearch } = requestBody;
 
     const session = await auth();
 
@@ -152,20 +151,25 @@ export async function POST(request: Request) {
       execute: (dataStream) => {
         const result = streamText({
           model: azure('o1'),
-          system: systemPrompt({ requestHints }),
+          system: systemPrompt({ deepResearch }),
           messages,
           maxSteps: 5,
           experimental_activeTools:
-            // selectedChatModel === 'chat-model-reasoning'
-            //   ? []
-            //   : 
-            [
-              'getWeather',
-              'createDocument',
-              'updateDocument',
-              'requestSuggestions',
-              'researchAgent',
-            ],
+            deepResearch === false
+              ? [
+                'getWeather',
+                'createDocument',
+                'updateDocument',
+                'requestSuggestions',
+              ]
+              :
+              [
+                'getWeather',
+                'createDocument',
+                'updateDocument',
+                'requestSuggestions',
+                'researchAgent',
+              ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
           tools: {

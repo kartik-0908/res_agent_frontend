@@ -34,11 +34,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
 export function Upgrade(): ReactElement {
     const [billingCycle, setBillingCycle] = useState<BillingCycle>("monthly");
     const { data } = useSession();
-    console.log(data?.user);
-
     const isGuest = guestRegex.test(data?.user?.email ?? '');
-
-
     const pricing: Record<BillingCycle, PricingInfo> = {
         monthly: { actual: 40, discounted: 20, label: "$20 / mo" },
         annual: { actual: 200, discounted: 100, label: "$100 / yr" },

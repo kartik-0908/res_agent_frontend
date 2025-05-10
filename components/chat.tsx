@@ -14,7 +14,7 @@ import type { VisibilityType } from './visibility-selector';
 import { useArtifactSelector } from '@/hooks/use-artifact';
 import { unstable_serialize } from 'swr/infinite';
 import { getChatHistoryPaginationKey } from './sidebar-history';
-import { toast } from './toast';
+import { toast } from 'sonner';
 import type { Session } from 'next-auth';
 import { useSearchParams } from 'next/navigation';
 import { useChatVisibility } from '@/hooks/use-chat-visibility';
@@ -43,6 +43,12 @@ export function Chat({
     chatId: id,
     initialVisibilityType,
   });
+  const [deepResearch, setDeepResearch] = useState<boolean>(false);
+  const handleDeepResearchClick = () => {
+    console.log('Deep Research clicked', deepResearch);
+    setDeepResearch((prev) => !prev);
+  };
+
 
   const {
     messages,
@@ -67,15 +73,15 @@ export function Chat({
       message: body.messages.at(-1),
       selectedChatModel: initialChatModel,
       selectedVisibilityType: visibilityType,
+      deepResearch: deepResearch
     }),
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
     },
     onError: (error) => {
-      toast({
-        type: 'error',
-        description: error.message,
-      });
+      console.error('Error in useChat:', error);
+      toast.error('An error occurred while processing your request.');
+
     },
   });
 
@@ -110,6 +116,7 @@ export function Chat({
     data,
     setMessages,
   });
+
 
   return (
     <>
@@ -147,6 +154,8 @@ export function Chat({
               setMessages={setMessages}
               append={append}
               selectedVisibilityType={visibilityType}
+              deepResearch={deepResearch}
+              handleDeepResearchClick={handleDeepResearchClick}
             />
           )}
         </form>
