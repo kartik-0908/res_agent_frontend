@@ -37,7 +37,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
                 <p className="text-center text-base leading-relaxed mb-6 text-gray-800 dark:text-gray-100">
                   We’re working on our mobile UI.<br />
                   Soon we’ll be in the App Store & Play Store too.<br />
-                  For the full experience, please use a laptop or PC.<br />
+                  For better experience, please use a laptop/PC.<br />
                   Thank you!
                 </p>
                

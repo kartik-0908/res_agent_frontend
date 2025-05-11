@@ -211,7 +211,7 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                           <div>
                             <div className="font-semibold text-xs text-gray-500 mb-1">Navigating web</div>
                             {step.research_urls.length === 0 ? (
-                              <div className="italic text-gray-500">Searching the web for relevant content...</div>
+                              <div className="italic text-gray-500">Searching through relevant medical journals...</div>
                             ) : (
                               <ul className="list-disc list-inside space-y-1">
                                 {step.research_urls.map((urlItem, idx) => (
