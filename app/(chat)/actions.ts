@@ -13,7 +13,15 @@ import { createAzure } from '@ai-sdk/azure';
 
 export async function saveChatModelAsCookie(model: string) {
   const cookieStore = await cookies();
-  cookieStore.set('chat-model', model);
+  cookieStore.set('makai-chat-model', model);
+  console.log('saved chat model as cookie:', model);
+}
+
+export async function saveDeepResearchAsCookie(status: string) {
+  const cookieStore = await cookies();
+  console.log('before saving deep reserach as cookie:', status);
+  cookieStore.set('makai-deep-research', status);
+  console.log('saved deep research as cookie:', status);
 }
 
 export async function generateTitleFromUserMessage({

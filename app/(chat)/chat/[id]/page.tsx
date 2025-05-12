@@ -52,7 +52,10 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   }
 
   const cookieStore = await cookies();
-  const chatModelFromCookie = cookieStore.get('chat-model');
+  const chatModelFromCookie = cookieStore.get('makai-chat-model');
+  const deepResearchFromCookie  = cookieStore.get('makai-deep-research') as unknown as string;
+  console.log('deep research from cookie:', deepResearchFromCookie);
+  const deepResearch = false || (deepResearchFromCookie !== undefined && deepResearchFromCookie === 'true' ? true : false);
 
   if (!chatModelFromCookie) {
     return (
@@ -65,6 +68,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
           isReadonly={session?.user?.id !== chat.userId}
           session={session}
           autoResume={true}
+          initialDeepResearch={deepResearch}
         />
         <DataStreamHandler id={id} />
       </>
@@ -81,6 +85,7 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
         isReadonly={session?.user?.id !== chat.userId}
         session={session}
         autoResume={true}
+        initialDeepResearch={deepResearch}
       />
       <DataStreamHandler id={id} />
     </>

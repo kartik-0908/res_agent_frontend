@@ -42,8 +42,6 @@ function PureMultimodalInput({
   handleSubmit,
   className,
   selectedVisibilityType,
-  deepResearch, // keep
-  handleDeepResearchClick, // added
 }: {
   chatId: string;
   input: UseChatHelpers['input'];
@@ -58,8 +56,6 @@ function PureMultimodalInput({
   handleSubmit: UseChatHelpers['handleSubmit'];
   className?: string;
   selectedVisibilityType: VisibilityType;
-  deepResearch: boolean; // keep
-  handleDeepResearchClick: () => void; // added
 }) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
@@ -297,7 +293,6 @@ function PureMultimodalInput({
 
       <div className="absolute bottom-0 p-2 w-fit flex flex-row justify-start">
         <AttachmentsButton fileInputRef={fileInputRef} status={status} />
-        <DeepResearchButton deepResearch={deepResearch} handleDeepResearchClick={handleDeepResearchClick} />
       </div>
 
       <div className="absolute bottom-0 right-0 p-2 w-fit flex flex-row justify-end">
@@ -323,7 +318,6 @@ export const MultimodalInput = memo(
     if (!equal(prevProps.attachments, nextProps.attachments)) return false;
     if (prevProps.selectedVisibilityType !== nextProps.selectedVisibilityType)
       return false;
-    if (prevProps.deepResearch !== nextProps.deepResearch) return false; // added
 
     return true;
   },
@@ -409,27 +403,5 @@ const SendButton = memo(PureSendButton, (prevProps, nextProps) => {
   return true;
 });
 
-const DeepResearchButton = memo(PureDeepResearchButton, (prevProps, nextProps) => {
-  if (prevProps.deepResearch !== nextProps.deepResearch) return false;
-  return true;
-});
 
 
-
-function PureDeepResearchButton({ deepResearch, handleDeepResearchClick }: { deepResearch: boolean, handleDeepResearchClick: () => void }) {
-  return (
-    <button
-      className={cx(
-        "rounded-full p-[7px] h-fit ml-2 flex flex-row items-center gap-1 border-0",
-        deepResearch
-          ? "text-blue-600 dark:text-blue-400"
-          : "text-[hsl(var(--muted-foreground))]"
-      )}
-      onClick={handleDeepResearchClick}
-      type="button"
-    >
-      <Search size={16} className="mr-1" />
-      <span>Deep Research</span>
-    </button>
-  );
-}

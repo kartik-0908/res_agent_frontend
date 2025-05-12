@@ -24,6 +24,7 @@ export function Chat({
   id,
   initialMessages,
   initialChatModel,
+  initialDeepResearch,
   initialVisibilityType,
   isReadonly,
   session,
@@ -32,23 +33,20 @@ export function Chat({
   id: string;
   initialMessages: Array<UIMessage>;
   initialChatModel: string;
+  initialDeepResearch: boolean;
   initialVisibilityType: VisibilityType;
   isReadonly: boolean;
   session: Session;
   autoResume: boolean;
 }) {
+
   const { mutate } = useSWRConfig();
+  console.log('initial chat model:', initialChatModel);
 
   const { visibilityType } = useChatVisibility({
     chatId: id,
     initialVisibilityType,
   });
-  const [deepResearch, setDeepResearch] = useState<boolean>(false);
-  const handleDeepResearchClick = () => {
-    console.log('Deep Research clicked', deepResearch);
-    setDeepResearch((prev) => !prev);
-  };
-
 
   const {
     messages,
@@ -73,7 +71,7 @@ export function Chat({
       message: body.messages.at(-1),
       selectedChatModel: initialChatModel,
       selectedVisibilityType: visibilityType,
-      deepResearch: deepResearch
+      deepResearch: initialDeepResearch
     }),
     onFinish: () => {
       mutate(unstable_serialize(getChatHistoryPaginationKey));
@@ -127,6 +125,7 @@ export function Chat({
           selectedVisibilityType={initialVisibilityType}
           isReadonly={isReadonly}
           session={session}
+          deepResearch={initialDeepResearch}
         />
         <Messages
           chatId={id}
@@ -154,8 +153,6 @@ export function Chat({
               setMessages={setMessages}
               append={append}
               selectedVisibilityType={visibilityType}
-              deepResearch={deepResearch}
-              handleDeepResearchClick={handleDeepResearchClick}
             />
           )}
         </form>
@@ -177,8 +174,6 @@ export function Chat({
         votes={votes}
         isReadonly={isReadonly}
         selectedVisibilityType={visibilityType}
-        deepResearch={deepResearch}
-        handleDeepResearchClick={handleDeepResearchClick}
       />
     </>
   );

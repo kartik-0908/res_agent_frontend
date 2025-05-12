@@ -7,10 +7,13 @@ import { SidebarToggle } from '@/components/sidebar-toggle';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from './icons';
 import { useSidebar } from './ui/sidebar';
-import { memo, useEffect, useState } from 'react';
+import { memo, startTransition, useEffect, useOptimistic, useState } from 'react';
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip';
-import { type VisibilityType } from './visibility-selector';
+import { VisibilitySelector, type VisibilityType } from './visibility-selector';
 import type { Session } from 'next-auth';
+import { ModelSelector } from './model-selector';
+import { Switch } from './ui/switch';
+import { saveDeepResearchAsCookie } from '@/app/(chat)/actions';
 
 function PureChatHeader({
   chatId,
@@ -18,23 +21,35 @@ function PureChatHeader({
   selectedVisibilityType,
   isReadonly,
   session,
+  deepResearch
 }: {
   chatId: string;
   selectedModelId: string;
   selectedVisibilityType: VisibilityType;
   isReadonly: boolean;
   session: Session;
+  deepResearch: boolean;
 }) {
   const router = useRouter();
   const { open } = useSidebar();
   const { width: windowWidth } = useWindowSize();
-
-
   const [isClient, setIsClient] = useState(false);
+  // const [deepResearchEnabled, setDeepResearchEnabled] = useState<boolean>(deepResearch);
+
+  const [deepResearchEnabled, setDeepResearchEnabled] =
+    useOptimistic(deepResearch);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  const handleDeepResearchClick = () => {
+    startTransition(() => {
+      setDeepResearchEnabled((prev) => !prev);
+      saveDeepResearchAsCookie((!deepResearchEnabled).toString());
+    });
+
+  }
 
 
   return (
@@ -75,7 +90,23 @@ function PureChatHeader({
         )
       )}
 
-      {/* {!isReadonly && (
+      {!isReadonly && (
+        <div className="flex items-center gap-2 order-3">
+          <label htmlFor="deep-research-toggle" className="text-sm">
+            Deep Research
+          </label>
+          <Switch
+            checked={deepResearchEnabled}
+            onCheckedChange={handleDeepResearchClick}
+            id="deep-research-toggle"
+          />
+
+        </div>
+      )}
+
+
+
+      {!isReadonly && (
         <ModelSelector
           session={session}
           selectedModelId={selectedModelId}
@@ -89,7 +120,7 @@ function PureChatHeader({
           selectedVisibilityType={selectedVisibilityType}
           className="order-1 md:order-3"
         />
-      )} */}
+      )}
 
       {/* <Button
         className="bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-zinc-50 dark:text-zinc-900 hidden md:flex py-1.5 px-2 h-fit md:h-[34px] order-4 md:ml-auto"

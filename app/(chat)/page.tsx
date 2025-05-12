@@ -15,7 +15,11 @@ export default async function Page() {
 
   const id = generateUUID();
   const cookieStore = await cookies();
-  const modelIdFromCookie = cookieStore.get('chat-model');
+  const modelIdFromCookie = cookieStore.get('makai-chat-model');
+  const deepResearchFromCookie = cookieStore.get('makai-deep-research');
+  console.log('deep research from cookie:', deepResearchFromCookie);
+  const deepResearch = false 
+  || (deepResearchFromCookie !== undefined && deepResearchFromCookie.value === 'true' ? true : false);
 
   if (!modelIdFromCookie) {
     console.log('No chat model found in cookies, using default model');
@@ -30,6 +34,7 @@ export default async function Page() {
           isReadonly={false}
           session={session}
           autoResume={false}
+          initialDeepResearch={deepResearch}
         />
         <DataStreamHandler id={id} />
       </>
@@ -47,6 +52,7 @@ export default async function Page() {
         isReadonly={false}
         session={session}
         autoResume={false}
+        initialDeepResearch={deepResearch}
       />
       <DataStreamHandler id={id} />
     </>
