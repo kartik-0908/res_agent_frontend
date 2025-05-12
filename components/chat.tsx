@@ -41,7 +41,7 @@ export function Chat({
 }) {
 
   const { mutate } = useSWRConfig();
-  console.log('initial chat model:', initialChatModel);
+  console.log('insdie chat deepres:', initialDeepResearch);
 
   const { visibilityType } = useChatVisibility({
     chatId: id,

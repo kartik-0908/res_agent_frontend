@@ -56,7 +56,9 @@ export default async function Page(props: { params: Promise<{ id: string }> }) {
   const deepResearchFromCookie = cookieStore.get('makai-deep-research');
   console.log('deep research from cookie:', deepResearchFromCookie);
   const deepResearch = false
-    || (deepResearchFromCookie !== undefined && deepResearchFromCookie.value === 'true' ? true : false);
+    || ((deepResearchFromCookie !== undefined && deepResearchFromCookie.value === 'true') ? true : false);
+
+  console.log('deep research after processingfrom cookie:', deepResearch);
 
   if (!chatModelFromCookie) {
     return (
