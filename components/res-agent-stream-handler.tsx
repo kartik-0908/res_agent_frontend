@@ -217,11 +217,7 @@ export function ResAgentStreamHandler({ id }: { id: string }) {
                                 {step.research_urls.map((urlItem, idx) => (
                                   <li
                                     key={idx}
-                                    className="transition-all duration-200 
-                                      bg-gray-100 border border-gray-200 
-                                      dark:bg-gray-700 dark:border-gray-600 
-                                      rounded-full px-3 py-2 flex items-center gap-2 max-w-full sm:max-w-xs cursor-pointer 
-                                      hover:scale-105 hover:shadow-md"
+                                    className="transition-all duration-200 bg-gray-100 border border-gray-200 dark:bg-gray-700 dark:border-gray-600 rounded-full px-3 py-2 flex items-center gap-2 max-w-full sm:max-w-xs cursor-pointer hover:scale-105 hover:shadow-md"
                                     title={urlItem.title}
                                     style={{ overflow: 'hidden' }}
                                   >
